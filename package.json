@@ -1,0 +1,25 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "tsc": "tsc",
+    "serve": "node build/index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/winston": "^2.3.9",
+    "express": "^4.16.3",
+    "sequelize": "^4.37.10",
+    "tedious": "^2.6.1",
+    "typescript": "^2.9.2",
+    "winston": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.16.0",
+    "@types/sequelize": "^4.27.21",
+    "@types/tedious": "^1.8.33"
+  }
+}
