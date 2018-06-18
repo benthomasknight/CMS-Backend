@@ -71,3 +71,10 @@ typings/
 
 # Serverless directories
 .serverless
+
+# Configuration files
+config/production.json
+config/default.json
+
+# build
+build

@@ -1,11 +1,12 @@
-var express = require('express');
-var bodyParser = require('body-parser');
+import { Router } from 'express';
+import { json } from 'body-parser';
 
-function route() {
-  var router = new express.Router();
-  router.use(bodyParser());
+var router = Router();
+router.use(json());
 
-  return router;
-}
+// Routes
+router.get('/', function (req, res) {
+  res.send('API Homepage');
+})
 
-module.exports = route;
+export let apiRoute = router;

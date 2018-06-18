@@ -4,13 +4,13 @@ import express from 'express';
 import { cpus } from 'os';
 import { dirname } from 'path';
 
-import { Instance } from './routes';
+import { Instance } from './src';
 
 var port = 3000;
 var root = dirname(__dirname);
 var cCPUs = cpus().length;
 
-if (cluster.isMaster) {
+if (cluster.isMaster && process.env.NODE_ENV != "development") {
   // Create a worker for each CPU
   for (var i = 0; i < cCPUs; i++) {
     createWorker();
@@ -22,7 +22,7 @@ if (cluster.isMaster) {
   app.use(bodyParser.json());
 
   app.listen(port,() => {
-    console.log('Listening on cluster: ' + cluster.worker.process.pid);
+    console.log('Listening on cluster: ' + process.pid);
   });
 }
 
