@@ -5,23 +5,31 @@ import { cpus } from 'os';
 import { dirname } from 'path';
 
 import { Instance } from './src';
+import { startup } from './src/startup';
 
 var port = 3000;
 var root = dirname(__dirname);
 var cCPUs = cpus().length;
 
-if (cluster.isMaster && process.env.NODE_ENV != "development") {
-  // Create a worker for each CPU
-  for (var i = 0; i < cCPUs; i++) {
-    createWorker();
-  }
+if (cluster.isMaster && process.env.NODE_ENV != 'development') {
+  startup().then(res => {
+    if(!res) {
+      console.log("CRASHED: Startup Validation Failed.");
+      process.exit();
+    }
+
+    // Create a worker for each CPU
+    for (var i = 0; i < cCPUs; i++) {
+      createWorker();
+    }
+  });
 } else {
   var app = express();
   var instance = Instance(app);
 
   app.use(bodyParser.json());
 
-  app.listen(port,() => {
+  app.listen(port, () => {
     console.log('Listening on cluster: ' + process.pid);
   });
 }
