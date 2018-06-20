@@ -45,7 +45,8 @@ class DBConnection {
       return true;
     })
     .catch(err => {
-      console.error('Unable to connect to the database:', err);
+      console.error('Unable to connect to the database:');
+      console.error(err);
       return false;
     });
   }

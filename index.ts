@@ -1,4 +1,3 @@
-import * as bodyParser from 'body-parser';
 import * as cluster from 'cluster';
 import express from 'express';
 import { cpus } from 'os';
@@ -6,28 +5,55 @@ import { dirname } from 'path';
 
 import { Instance } from './src';
 import { startup } from './src/startup';
+//import { logger } from './src/util/log';
+import { createLogger, transports } from 'winston';
+import DailyRotateFile from 'winston-daily-rotate-file';
 
 var port = 3000;
 var root = dirname(__dirname);
 var cCPUs = cpus().length;
+let logger = createLogger({
+  transports: [
+    new transports.Console(),
+    new DailyRotateFile({
+      filename: `${process.pid}-%DATE%.log`,
+      dirname: 'logs',
+      zippedArchive: true,
+      maxSize: '20m',
+      maxFiles: '7d'
+    })
+  ]
+});
 
-if (cluster.isMaster && process.env.NODE_ENV != 'development') {
-  startup().then(res => {
-    if(!res) {
-      console.log("CRASHED: Startup Validation Failed.");
-      process.exit();
-    }
+if (process.env.NODE_ENV != 'development') {
+  if (cluster.isMaster) {
 
-    // Create a worker for each CPU
-    for (var i = 0; i < cCPUs; i++) {
-      createWorker();
-    }
-  });
+    startup()
+      .then(res => {
+        if (res) {
+          // Create a worker for each CPU
+          for (var i = 0; i < cCPUs; i++) {
+            createWorker();
+          }
+        } else {
+          logger.error('Startup Validation Failed');
+        }
+      })
+      .catch(err => {
+        logger.error('Startup Validation Failed');
+        logger.error(err);
+      });
+  } else {
+    var app = express();
+    var instance = Instance(app);
+
+    app.listen(port, () => {
+      console.log('Listening on cluster: ' + process.pid);
+    });
+  }
 } else {
   var app = express();
   var instance = Instance(app);
-
-  app.use(bodyParser.json());
 
   app.listen(port, () => {
     console.log('Listening on cluster: ' + process.pid);
