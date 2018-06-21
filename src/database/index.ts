@@ -1,9 +1,15 @@
 import sequelize from 'sequelize';
 import config from 'config';
 import {error, info} from 'winston';
-import { TypesDefinition } from './types';
-import { SchemaDefinition } from './schema';
+import { TypesDefinition } from './models/types';
+import { SchemaDefinition } from './models/schema';
+import { UsersDefinition } from './models/users';
 
+/**
+ * Connection to the database
+ *
+ * @class DBConnection
+ */
 class DBConnection {
   public sequelize: sequelize.Sequelize;
 
@@ -12,6 +18,12 @@ class DBConnection {
     this.buildDefaultDatabaseSchema();
   }
 
+  /**
+   * Return a valid instance of the sequelize object.
+   *
+   * @returns {sequelize.Sequelize}
+   * @memberof DBConnection
+   */
   public getSequelize(): sequelize.Sequelize {
     if (this.sequelize != null) {
       return this.sequelize;
@@ -20,7 +32,13 @@ class DBConnection {
     }
   }
 
-  initSequelize(): sequelize.Sequelize {
+  /**
+   * Create a valid instance of the sequelize object
+   *
+   * @returns {sequelize.Sequelize}
+   * @memberof DBConnection
+   */
+  private initSequelize(): sequelize.Sequelize {
     var conf:any = config.get('dbConfig');
     var database = `${conf.host}:${conf.port}`;
     let username = conf.username;
@@ -41,6 +59,12 @@ class DBConnection {
     });
   }
 
+  /**
+   * Test the connection to the database
+   *
+   * @returns
+   * @memberof DBConnection
+   */
   test() {
     return this.getSequelize()
     .authenticate()
@@ -55,11 +79,22 @@ class DBConnection {
     });
   }
 
+  /**
+   * Build up the default table schema. This includes the following:
+   *
+   * - Users
+   * - Schema
+   * - Types
+   * - Security
+   *
+   * @memberof DBConnection
+   */
   buildDefaultDatabaseSchema() {
     var s = this.getSequelize();
 
     // Base records with no references
     let types = s.import('types', TypesDefinition);
+    let users = s.import('users', UsersDefinition);
 
     // Tables with References
     let schema = s.import('schema', SchemaDefinition);
@@ -69,10 +104,23 @@ class DBConnection {
     let refresh = (config.get('dbConfig') as any).refreshDatabase || false;
     let match = (config.get('dbConfig') as any).refreshDatabaseMatch || '_DEV$';
     s.sync({
+      // Allow the database to be completely cleared if true
       force: (config.get('dbConfig') as any).refreshDatabase || false,
+
+      // Check to make sure that the database name matches the ones allowed to be cleared
       match: new RegExp(match)
     }).then(() => {
       info('Created Default Schema in Database.');
+
+      // Test generation of a user
+      /*users.findOrCreate({where: {username: 'rxp.bk'}, defaults: {password: 'Password'}}).spread((val, cre) => {
+        info(cre);
+        info(val);
+      })
+      .catch((err) => {
+        error(err);
+      });*/
+
     }).catch((err) => {
       error('Failed to create default schema in database.');
       error(err);
