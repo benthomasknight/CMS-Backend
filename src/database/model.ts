@@ -1,0 +1,7 @@
+interface IModel {
+  
+}
+
+class Model {
+
+}
