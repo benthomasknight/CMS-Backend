@@ -2,8 +2,20 @@
   "dbConfig": {
     "host": "localhost",
     "port": 53770,
-    "databasename": "<Name>",
-    "username": "<User>",
-    "password": "<Pass>"
+    "databasename": "",
+    "username": "",
+    "password": "",
+    "refreshDatabase": true,
+    "refreshDatabaseMatch": ".*"
+  },
+  "security": {
+    "rounds": 10,
+    "passwordRules": [{
+      "regex": "^.{8,}$",
+      "message": "Your password must be at least 8 characters long"
+    },{
+      "regex": ".*[A-Z]{1}.*",
+      "message": "You password must contain a Capital Letter"
+    }]
   }
 }
