@@ -2,18 +2,18 @@ import { Router } from 'express';
 import { json } from 'body-parser';
 import { info } from 'winston';
 
-import { dbRoute } from './db'
+import {dbv1Route} from './v1';
 
 var router = Router();
 router.use(json());
 
 // Child Routes
-router.use('/db', dbRoute);
+router.use('/v1', dbv1Route);
 
 // Routes
 router.get('/', function (req, res) {
-  info('Hit the base api route');
-  res.send('API Homepage');
+  info('Hit the api/db route');
+  res.send('api/db Homepage');
 })
 
-export let apiRoute = router;
+export let dbRoute = router;

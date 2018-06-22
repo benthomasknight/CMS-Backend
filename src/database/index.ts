@@ -1,7 +1,7 @@
 import sequelize from 'sequelize';
 import config from 'config';
 import {error, info} from 'winston';
-import { TypesDefinition } from './models/types';
+import { TypesDefinition } from './models/field_types';
 import { SchemaDefinition } from './models/schema';
 import { UsersDefinition } from './models/users';
 
@@ -44,7 +44,7 @@ class DBConnection {
     let username = conf.username;
     let password = conf.password;
 
-    return new sequelize({
+    let sq = new sequelize({
       dialect: 'mssql',
       pool: {
         max: 10,
@@ -55,8 +55,69 @@ class DBConnection {
       port: conf.port,
       username: conf.username,
       password: conf.password,
-      database: conf.databasename
+      database: conf.databasename,
+      operatorsAliases: {
+        $EQ: sequelize.Op.eq,
+        $NEQ: sequelize.Op.ne,
+        $GTE: sequelize.Op.gte,
+        $GT: sequelize.Op.gt,
+        $LTE: sequelize.Op.lte,
+        $LT: sequelize.Op.lt,
+        $NOT: sequelize.Op.not,
+        $IN: sequelize.Op.in,
+        $NIN: sequelize.Op.notIn,
+        $LIKE: sequelize.Op.like,
+        $NLIKE: sequelize.Op.notLike,
+        $BETWEEN: sequelize.Op.between,
+        $NBETWEEN: sequelize.Op.notBetween,
+
+        $AND: sequelize.Op.and,
+        $OR: sequelize.Op.or,
+      }
     });
+
+    /*
+    GLOBAL hooks
+    */
+    sq.addHook('beforeFind', (instance:any) => {
+      info('in find');
+
+      // Column and Table Security
+    });
+    sq.addHook('beforeCreate', (instance:any, options:any) => {
+      info('in create');
+
+      // Column and Table Security
+    });
+    sq.addHook('beforeDestroy', (instance:any, options:any) => {
+      info('in destroy');
+
+      // Column and Table Security
+    });
+    sq.addHook('beforeUpdate', (instance:any, options:any) => {
+      info('in update');
+
+      // Column and Table Security
+    });
+
+    sq.addHook('beforeDefine',(attr: sequelize.DefineAttributes, opt: sequelize.DefineOptions<any>) => {
+      // Default Columns
+      attr.createdBy = {
+        type: sequelize.STRING,
+        allowNull: false
+      };
+      attr.updatedBy = {
+        type: sequelize.STRING,
+        allowNull: false
+      };
+      attr.active = {
+        type: sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: true
+      };
+    })
+
+    return sq;
   }
 
   /**
@@ -93,11 +154,11 @@ class DBConnection {
     var s = this.getSequelize();
 
     // Base records with no references
-    let types = s.import('types', TypesDefinition);
+    let types = s.import('field_types', TypesDefinition);
     let users = s.import('users', UsersDefinition);
 
     // Tables with References
-    let schema = s.import('schema', SchemaDefinition);
+    let schema = s.import('schemas', SchemaDefinition);
     types.hasMany(schema);
 
     // Update the database with these models
@@ -111,16 +172,6 @@ class DBConnection {
       match: new RegExp(match)
     }).then(() => {
       info('Created Default Schema in Database.');
-
-      // Test generation of a user
-      /*users.findOrCreate({where: {username: 'rxp.bk'}, defaults: {password: 'Password'}}).spread((val, cre) => {
-        info(cre);
-        info(val);
-      })
-      .catch((err) => {
-        error(err);
-      });*/
-
     }).catch((err) => {
       error('Failed to create default schema in database.');
       error(err);

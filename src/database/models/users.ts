@@ -22,15 +22,20 @@ export function UsersDefinition(sequelize:Sequelize, DataTypes:DataTypes) {
         passwordValidation
       }
     },
-    first_name: {
+    firstName: {
       type: DataTypes.STRING
     },
-    last_name: {
+    lastName: {
       type: DataTypes.STRING
     }
   }, {
     hooks: {
       beforeCreate: (user: IUser, options) => {
+        return hash(user.password).then(val => {
+          user.password = val;
+        })
+      },
+      beforeUpdate: (user: IUser, options) => {
         return hash(user.password).then(val => {
           user.password = val;
         })
