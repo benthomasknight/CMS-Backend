@@ -8,7 +8,9 @@ import { FindOptions } from 'sequelize';
 var router = Router();
 router.use(json());
 
-// Routes
+/*
+  GET ROUTES
+*/
 router.get('/', function (req, res) {
   res.sendStatus(400);
   res.send("A Table Name must be provided.");
@@ -16,9 +18,6 @@ router.get('/', function (req, res) {
 
 
 router.get('/:table', function (req, res) {
-  /*info('Hit the api/db/v1 route');
-  res.send('api/db/v1 Homepage');*/
-
   let sq = db.getSequelize();
 
   if(!sq.models[req.params.table]) {
@@ -52,6 +51,36 @@ router.get('/:table', function (req, res) {
 router.get('/:table/:id', function (req, res) {
   info('Hit the api/db/v1 route');
   res.send('api/db/v1 Homepage');
+});
+
+
+/*
+  POST ROUTES
+*/
+router.post('/', function (req, res) {
+  res.sendStatus(400);
+  res.send("A Table Name must be provided.");
+});
+
+router.post('/:table', function (req, res) {
+  let sq = db.getSequelize();
+
+  if(!sq.models[req.params.table]) {
+    res.sendStatus(400);
+    res.send("An invalid table name was provided.");
+    return;
+  }
+
+  // Insert Payload
+  // Validation is done before insert on the model so none is done here
+  sq.models[req.params.table].create(req.body)
+  .then(record => {
+
+  }).catch(err => {
+    error(err);
+  })
+
+  res.send("success");
 });
 
 export let dbv1Route = router;

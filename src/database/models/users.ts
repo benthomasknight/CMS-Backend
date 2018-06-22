@@ -9,6 +9,14 @@ interface IUser {
   last_name: string
 }
 
+/**
+ * User Definition schema
+ *
+ * @export
+ * @param {Sequelize} sequelize
+ * @param {DataTypes} DataTypes
+ * @returns
+ */
 export function UsersDefinition(sequelize:Sequelize, DataTypes:DataTypes) {
   return sequelize.define("users", {
     username: {
