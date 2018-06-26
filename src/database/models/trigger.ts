@@ -1,7 +1,7 @@
 import {Sequelize, DataTypes} from 'sequelize';
 
-export function SchemaDefinition(sequelize:Sequelize, DataTypes:DataTypes) {
-  return sequelize.define("schemas", {
+export function TriggerDefinition(sequelize:Sequelize, DataTypes:DataTypes) {
+  return sequelize.define("trigggers", {
     type: {
       type: DataTypes.STRING,
       allowNull: false,

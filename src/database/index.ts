@@ -115,11 +115,21 @@ class DBConnection {
 
       // Column and Table Security
     });
+    sq.addHook('afterFind', (instance:any) => {
+      info('in find');
+
+      // Column and Table Security
+    });
 
     /*
     VALIDATE
     */
     sq.addHook('beforeValidate', (instance:any) => {
+      info('in find');
+
+      // Column and Table Security
+    });
+    sq.addHook('afterValidate', (instance:any) => {
       info('in find');
 
       // Column and Table Security
@@ -133,6 +143,11 @@ class DBConnection {
 
       // Column and Table Security
     });
+    sq.addHook('afterCreate', (instance:any, options:any) => {
+      info('in create');
+
+      // Column and Table Security
+    });
 
     /*
     UPDATE
@@ -142,11 +157,21 @@ class DBConnection {
 
       // Column and Table Security
     });
+    sq.addHook('afterUpdate', (instance:any, options:any) => {
+      info('in update');
+
+      // Column and Table Security
+    });
 
     /*
     DESTROY
     */
     sq.addHook('beforeDestroy', (instance:any, options:any) => {
+      info('in destroy');
+
+      // Column and Table Security
+    });
+    sq.addHook('afterDestroy', (instance:any, options:any) => {
       info('in destroy');
 
       // Column and Table Security
