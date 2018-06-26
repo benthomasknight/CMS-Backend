@@ -1,9 +1,8 @@
 import sequelize, { Sequelize } from 'sequelize';
 import config from 'config';
 import {error, info} from 'winston';
-import { TypesDefinition } from './models/field_types';
-import { SchemaDefinition } from './models/schema';
-import { UsersDefinition } from './models/users';
+
+import { createBaseModels } from './models';
 
 /**
  * Connection to the database
@@ -188,13 +187,8 @@ class DBConnection {
   buildDefaultDatabaseSchema() {
     var s = this.getSequelize();
 
-    // Base records with no references
-    let types = s.import('field_types', TypesDefinition);
-    let users = s.import('users', UsersDefinition);
-
-    // Tables with References
-    let schema = s.import('schemas', SchemaDefinition);
-    types.hasMany(schema);
+    // Make sure all the base tables are created
+    createBaseModels(s);
 
     // Update the database with these models
     let refresh = (config.get('dbConfig') as any).refreshDatabase || false;
