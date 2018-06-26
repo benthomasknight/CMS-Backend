@@ -16,6 +16,11 @@
     },{
       "regex": ".*[A-Z]{1}.*",
       "message": "You password must contain a Capital Letter"
-    }]
+    }],
+    "secret": "",
+    "publicPaths": [
+      "/api/login",
+      "/api/logout"
+    ]
   }
 }

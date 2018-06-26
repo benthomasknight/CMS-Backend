@@ -1,7 +1,0 @@
-interface IModel {
-  
-}
-
-class Model {
-
-}

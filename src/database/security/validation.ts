@@ -26,6 +26,7 @@ export function passwordValidation(value: string) {
 
   let messages: Array<string> = [];
 
+  // Go through all the specified password requirements, and if any fail return a message
   rules.forEach(v => {
     let expression = new RegExp(v.regex);
     if (!expression.test(value)) {

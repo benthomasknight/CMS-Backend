@@ -1,4 +1,4 @@
-import sequelize from 'sequelize';
+import sequelize, { Sequelize } from 'sequelize';
 import config from 'config';
 import {error, info} from 'winston';
 import { TypesDefinition } from './models/field_types';
@@ -76,30 +76,20 @@ class DBConnection {
       }
     });
 
+    return sq;
+  }
+
+  /**
+   * Add all hooks
+   *
+   * @private
+   * @memberof DBConnection
+   */
+  private addHooks(sq: Sequelize) {
+
     /*
-    GLOBAL hooks
+    MODEL DEFINE
     */
-    sq.addHook('beforeFind', (instance:any) => {
-      info('in find');
-
-      // Column and Table Security
-    });
-    sq.addHook('beforeCreate', (instance:any, options:any) => {
-      info('in create');
-
-      // Column and Table Security
-    });
-    sq.addHook('beforeDestroy', (instance:any, options:any) => {
-      info('in destroy');
-
-      // Column and Table Security
-    });
-    sq.addHook('beforeUpdate', (instance:any, options:any) => {
-      info('in update');
-
-      // Column and Table Security
-    });
-
     sq.addHook('beforeDefine',(attr: sequelize.DefineAttributes, opt: sequelize.DefineOptions<any>) => {
       // Default Columns
       attr.createdBy = {
@@ -117,7 +107,52 @@ class DBConnection {
       };
     })
 
-    return sq;
+
+    /*
+    FIND
+    */
+    sq.addHook('beforeFind', (instance:any) => {
+      info('in find');
+
+      // Column and Table Security
+    });
+
+    /*
+    VALIDATE
+    */
+    sq.addHook('beforeValidate', (instance:any) => {
+      info('in find');
+
+      // Column and Table Security
+    });
+
+    /*
+    CREATE
+    */
+    sq.addHook('beforeCreate', (instance:any, options:any) => {
+      info('in create');
+
+      // Column and Table Security
+    });
+
+    /*
+    UPDATE
+    */
+    sq.addHook('beforeUpdate', (instance:any, options:any) => {
+      info('in update');
+
+      // Column and Table Security
+    });
+
+    /*
+    DESTROY
+    */
+    sq.addHook('beforeDestroy', (instance:any, options:any) => {
+      info('in destroy');
+
+      // Column and Table Security
+    });
+
   }
 
   /**

@@ -1,7 +1,14 @@
 import * as cluster from 'cluster';
 import express from 'express';
+
 import { cpus } from 'os';
 import { dirname } from 'path';
+
+/*
+PASSPORT
+*/
+import {setupSecurity} from './src/startup/security';
+
 
 import { Instance } from './src';
 import { startup } from './src/startup';
@@ -53,6 +60,9 @@ if (process.env.NODE_ENV != 'development') {
   }));
 
   var app = express();
+  setupSecurity(app);
+
+  // Should always be just before the listen call
   var instance = Instance(app);
 
   app.listen(port, () => {
