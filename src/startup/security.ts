@@ -7,6 +7,7 @@ import { session as psession, initialize } from 'passport';
 import { db } from '../database';
 import { NextFunction } from 'connect';
 
+import helmet from 'helmet';
 
 /**
  * Make sure all the passport required imports are added
@@ -15,8 +16,16 @@ import { NextFunction } from 'connect';
  * @param {Express} app
  */
 export function setupSecurity(app: Express) {
+  app.use(helmet());
+
   app.use(session({
-    secret: (<any>config.get('security')).secret || ''
+    secret: (<any>config.get('security')).secret || '',
+    name: 'cms.session',
+    cookie: {
+      secure: true,
+      httpOnly: true,
+      domain: 'localhost',
+    }
   }));
 
   app.use(initialize());

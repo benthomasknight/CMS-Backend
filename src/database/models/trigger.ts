@@ -1,9 +1,17 @@
 import {Sequelize, DataTypes} from 'sequelize';
 
+/**
+ * Triggers that run at certain events. eg. beforeUpdate
+ *
+ * @export
+ * @param {Sequelize} sequelize
+ * @param {DataTypes} DataTypes
+ * @returns
+ */
 export function TriggerDefinition(sequelize:Sequelize, DataTypes:DataTypes) {
-  return sequelize.define("trigggers", {
+  return sequelize.define("triggers", {
     type: {
-      type: DataTypes.STRING,
+      type: DataTypes.ENUM,
       allowNull: false,
       values: [
         'beforeValidate',
@@ -26,7 +34,7 @@ export function TriggerDefinition(sequelize:Sequelize, DataTypes:DataTypes) {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    order: DataTypes.NUMBER,
+    order: DataTypes.INTEGER,
     description: DataTypes.TEXT,
     script: DataTypes.TEXT
   })

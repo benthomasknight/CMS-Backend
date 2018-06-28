@@ -1,5 +1,3 @@
-import {Op} from 'sequelize';
-
 interface IAcceptedParameters {
   id?: string,
   query?: {

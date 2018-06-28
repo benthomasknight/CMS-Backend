@@ -1,8 +1,11 @@
 import * as cluster from 'cluster';
-import express from 'express';
+import express, { Request, Response } from 'express';
 
 import { cpus } from 'os';
 import { dirname } from 'path';
+
+import { createServer as createServerHTTP } from 'http';
+import { createServer as createServerHTTPS } from 'https';
 
 /*
 PASSPORT
@@ -12,16 +15,27 @@ import {setupSecurity} from './src/startup/security';
 
 import { Instance } from './src';
 import { startup } from './src/startup';
+import config from 'config';
 
 import DailyRotateFile from 'winston-daily-rotate-file';
 import * as logger from 'winston';
+import { readFileSync } from 'fs';
+import { NextFunction } from 'express-serve-static-core';
 
 logger.add(new logger.transports.Console({format: logger.format.colorize()}));
 
 
-var port = 3000;
+var port = (config.get('server') as any).port || 443;
 var root = dirname(__dirname);
 var cCPUs = cpus().length;
+
+// HTTPS Cert options
+
+let cert = (<any>config.get("security")).cert;
+var httpsOptions = {
+  key: readFileSync(cert.key),
+  cert: readFileSync(cert.cert)
+};
 
 
 if (process.env.NODE_ENV != 'development') {
@@ -44,9 +58,22 @@ if (process.env.NODE_ENV != 'development') {
       });
   } else {
     var app = express();
+    app.all('*', (req: Request, res: Response, next: NextFunction) => {
+      if(req.secure){
+        // OK, continue
+        return next();
+      };
+      // handle port numbers if you need non defaults
+      let path = `https://${req.hostname}:${port}${req.url}`;
+      res.redirect(path); // express 4.x
+    })
+
     var instance = Instance(app);
 
-    app.listen(port, () => {
+    /*
+    HTTPS Server
+    */
+    createServerHTTPS(httpsOptions, app).listen(port, () => {
       logger.info('Listening on cluster: ' + process.pid);
     });
   }
@@ -60,12 +87,29 @@ if (process.env.NODE_ENV != 'development') {
   }));
 
   var app = express();
+  app.all('*', (req: Request, res: Response, next: NextFunction) => {
+    if(req.secure){
+      // OK, continue
+      return next();
+    };
+    // handle port numbers if you need non defaults
+    let path = `https://${req.hostname}:${port}${req.url}`;
+    res.redirect(path); // express 4.x
+  })
   setupSecurity(app);
 
   // Should always be just before the listen call
   var instance = Instance(app);
 
-  app.listen(port, () => {
+  /*
+  Auto redirect to HTTPS
+  */
+  createServerHTTP(app).listen(80);
+
+  /*createServerHTTP(app).listen(port, () => {
+    logger.info('Listening on cluster: ' + process.pid);
+  });*/
+  createServerHTTPS(httpsOptions, app).listen(port, () => {
     logger.info('Listening on cluster: ' + process.pid);
   });
 }

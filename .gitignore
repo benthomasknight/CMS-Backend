@@ -78,3 +78,6 @@ config/default.json
 
 # build
 build
+
+# Certificates
+cert

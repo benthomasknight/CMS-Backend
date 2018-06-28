@@ -1,4 +1,7 @@
 {
+  "server": {
+    "port": 443
+  },
   "dbConfig": {
     "host": "localhost",
     "port": 53770,
@@ -13,7 +16,7 @@
     "passwordRules": [{
       "regex": "^.{8,}$",
       "message": "Your password must be at least 8 characters long"
-    },{
+    }, {
       "regex": ".*[A-Z]{1}.*",
       "message": "You password must contain a Capital Letter"
     }],
@@ -21,6 +24,10 @@
     "publicPaths": [
       "/api/login",
       "/api/logout"
-    ]
+    ],
+    "cert": {
+      "key": "",
+      "cert": ""
+    }
   }
 }

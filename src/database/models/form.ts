@@ -1,15 +1,15 @@
 import {Sequelize, DataTypes} from 'sequelize';
 
 /**
- * Data Types available to use as columns in a table
+ * Forms are the display available to the user
  *
  * @export
  * @param {Sequelize} sequelize
  * @param {DataTypes} DataTypes
  * @returns
  */
-export function TypesDefinition(sequelize:Sequelize, DataTypes:DataTypes) {
-  return sequelize.define("field_types", {
+export function FormsDefinition(sequelize:Sequelize, DataTypes:DataTypes) {
+  return sequelize.define("forms", {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,

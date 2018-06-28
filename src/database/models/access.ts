@@ -1,5 +1,13 @@
 import {Sequelize, DataTypes} from 'sequelize';
 
+/**
+ * Access is the ACL manager for tables and columns
+ *
+ * @export
+ * @param {Sequelize} sequelize
+ * @param {DataTypes} DataTypes
+ * @returns
+ */
 export function AccessDefinition(sequelize:Sequelize, DataTypes:DataTypes) {
   return sequelize.define("access", {
     type: {
