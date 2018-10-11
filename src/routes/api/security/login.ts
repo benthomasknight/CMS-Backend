@@ -8,6 +8,9 @@ var router = Router();
 router.use(json());
 
 // Routes
+/*router.post('/', authenticate('local'), function (req, res) {
+  res.send('Successfully Logged In');
+})*/
 router.post('/', authenticate('local'), function (req, res) {
   res.send('Successfully Logged In');
 })

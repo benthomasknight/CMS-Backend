@@ -12,6 +12,7 @@
   "dependencies": {
     "@types/express-session": "^1.15.10",
     "bcrypt": "^2.0.1",
+    "body-parser": "^1.18.3",
     "config": "^1.30.0",
     "cors": "^2.8.4",
     "express": "^4.16.3",

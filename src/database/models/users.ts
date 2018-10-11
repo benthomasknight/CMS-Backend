@@ -1,14 +1,19 @@
 import { passwordValidation } from '../security/validation';
 import {Sequelize, DataTypes} from 'sequelize';
 import {hash} from '../security/encrypt';
+import sequelize = require('sequelize');
 
-interface IUser {
+export interface IUser {
   username: string,
   password: string,
   first_name: string,
   last_name: string
 }
 
+export interface IUserModel extends sequelize.Model<IUser, {}> {
+  UserExists(username:string): Promise<boolean>;
+  CreateUser(data: IUser): Promise<IUser>;
+}
 /**
  * User Definition schema
  *
@@ -18,7 +23,7 @@ interface IUser {
  * @returns
  */
 export function UsersDefinition(sequelize:Sequelize, DataTypes:DataTypes) {
-  return sequelize.define("users", {
+  const model = sequelize.define("users", {
     username: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -49,5 +54,25 @@ export function UsersDefinition(sequelize:Sequelize, DataTypes:DataTypes) {
         })
       }
     }
-  })
+  }) as IUserModel;
+
+  model.UserExists = async function(username) {
+    return this.findOne({
+      where: {
+        username: username
+      }
+    }).then(user => {
+      return user != null;
+    });
+  };
+
+  model.CreateUser = async function(data) {
+    return this.create(data, {
+      isNewRecord: true,
+      validate: true
+    });
+  };
+
+  return model;
 }
+

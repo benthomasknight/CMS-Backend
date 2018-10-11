@@ -21,6 +21,7 @@ import DailyRotateFile from 'winston-daily-rotate-file';
 import * as logger from 'winston';
 import { readFileSync } from 'fs';
 import { NextFunction } from 'express-serve-static-core';
+import bodyParser = require('body-parser');
 
 logger.add(new logger.transports.Console({format: logger.format.colorize()}));
 
@@ -58,6 +59,8 @@ if (process.env.NODE_ENV != 'development') {
       });
   } else {
     var app = express();
+    app.use(bodyParser.json());
+
     app.all('*', (req: Request, res: Response, next: NextFunction) => {
       if(req.secure){
         // OK, continue
@@ -87,6 +90,8 @@ if (process.env.NODE_ENV != 'development') {
   }));
 
   var app = express();
+  app.use(bodyParser.json());
+
   app.all('*', (req: Request, res: Response, next: NextFunction) => {
     if(req.secure){
       // OK, continue

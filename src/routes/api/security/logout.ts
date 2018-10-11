@@ -7,8 +7,9 @@ router.use(json());
 
 // Routes
 router.get('/', function (req, res) {
+  req.logout();
   info('Hit the logout route');
-  res.send('Logout');
+  res.redirect('/');
 })
 
 export let logoutRoute = router;
