@@ -80,4 +80,6 @@ config/default.json
 build
 
 # Certificates
-cert
+cert/*.csr
+cert/*.crt
+cert/*.key
