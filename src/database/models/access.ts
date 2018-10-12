@@ -1,4 +1,10 @@
-import {Sequelize, DataTypes} from 'sequelize';
+import {Sequelize, DataTypes, Model} from 'sequelize';
+import { IUser } from './users';
+
+export interface IAccessModel extends Model<{}, {}> {
+  HasAccessToTable(table: string, user: IUser): Promise<boolean>;
+  HasAccessToColumn(table: string, column: string, user: IUser): Promise<boolean>;
+}
 
 /**
  * Access is the ACL manager for tables and columns
@@ -9,7 +15,7 @@ import {Sequelize, DataTypes} from 'sequelize';
  * @returns
  */
 export function AccessDefinition(sequelize:Sequelize, DataTypes:DataTypes) {
-  return sequelize.define("access", {
+  let model =  sequelize.define("access", {
     type: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -23,13 +29,15 @@ export function AccessDefinition(sequelize:Sequelize, DataTypes:DataTypes) {
       type: DataTypes.STRING,
     },
     defaultValue: DataTypes.TEXT,
-  })
+  }) as IAccessModel;
+
+  model.HasAccessToTable = async (table: string, user: IUser) => {
+    return true;
+  }
+
+  model.HasAccessToColumn = async (table: string, column:string, user: IUser) => {
+    return true;
+  }
+
+  return model;
 }
-/*
-function HasAccessToTable(table) {
-
-}
-
-function HasAccessToColumn(table, column) {
-
-}*/

@@ -5,13 +5,13 @@
   "main": "index.js",
   "scripts": {
     "tsc": "tsc",
-    "serve": "node build/index.js"
+    "serve": "node build/index.js",
+    "dev": "concurrently --kill-others \"npm run tsc\" \"npm run serve\""
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/express-session": "^1.15.10",
-    "bcrypt": "^2.0.1",
+    "bcrypt": "^3.0.1",
     "body-parser": "^1.18.3",
     "config": "^1.30.0",
     "cors": "^2.8.4",
@@ -24,7 +24,6 @@
     "tedious": "^2.6.1",
     "typescript": "^2.9.2",
     "winston": "^3.0.0",
-    "winston-cluster": "^0.2.1",
     "winston-daily-rotate-file": "^3.2.1",
     "winston-transport": "^4.2.0"
   },
@@ -33,11 +32,13 @@
     "@types/config": "0.0.34",
     "@types/cors": "^2.8.4",
     "@types/express": "^4.16.0",
+    "@types/express-session": "^1.15.10",
     "@types/helmet": "0.0.38",
     "@types/passport": "^0.4.5",
     "@types/passport-local": "^1.0.33",
     "@types/sequelize": "^4.27.21",
     "@types/tedious": "^1.8.33",
-    "@types/winston": "^2.3.9"
+    "@types/winston": "^2.3.9",
+    "concurrently": "^4.0.1"
   }
 }

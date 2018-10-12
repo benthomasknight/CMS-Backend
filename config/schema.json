@@ -23,7 +23,8 @@
     "secret": "",
     "publicPaths": [
       "/api/login",
-      "/api/logout"
+      "/api/logout",
+      "/api/create"
     ],
     "cert": {
       "key": "",

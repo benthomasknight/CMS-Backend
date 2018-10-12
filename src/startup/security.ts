@@ -25,7 +25,9 @@ export function setupSecurity(app: Express) {
       secure: true,
       httpOnly: true,
       domain: 'localhost',
-    }
+    },
+    resave: true,
+    saveUninitialized: true
   }));
 
   app.use(initialize());
@@ -53,8 +55,8 @@ function isAuthenticated(req: Request, res: Response, next: NextFunction) {
   }
 
   // Return an unauthorized message to the user
-  res.sendStatus(401);
-  return res.send("Please login");
+  return res.sendStatus(401);
+  //return res.send("Please login");
 }
 
 // Passport serialize
