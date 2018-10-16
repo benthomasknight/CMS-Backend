@@ -1,4 +1,19 @@
 import {Sequelize, DataTypes} from 'sequelize';
+import { BaseTable, BaseTableModel } from './BaseModel';
+import sequelize = require('sequelize');
+import { types, MapToFieldType } from './DataTypes';
+import { error } from 'winston';
+import { db } from '..';
+import { IColumnModel } from './column';
+
+export interface IFieldType extends BaseTable {
+  id: number;
+  label: string;
+}
+
+export interface IFieldTypeModel extends BaseTableModel<IFieldType, {}> {
+  PostCreateScript(): Promise<boolean>;
+}
 
 /**
  * Data Types available to use as columns in a table
@@ -9,7 +24,7 @@ import {Sequelize, DataTypes} from 'sequelize';
  * @returns
  */
 export function TypesDefinition(sequelize:Sequelize, DataTypes:DataTypes) {
-  return sequelize.define("field_types", {
+  let model = sequelize.define("field_types", {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
@@ -20,5 +35,28 @@ export function TypesDefinition(sequelize:Sequelize, DataTypes:DataTypes) {
       allowNull: false,
       unique: true
     }
-  })
+  }) as IFieldTypeModel;
+
+  model.PostCreateScript = function() {
+    let sq = db.getSequelize();
+    return Promise.all(types.map(v => {
+      return sq.models.field_types.findOrCreate({
+        where: {
+          label: v
+        }
+      })
+    })).then(() => {
+      // Field types exist so now the existing columns can be specified
+      return Promise.all(Object.keys(sq.models).map((v) => {
+        return (<IColumnModel>sq.models.columns).CreateColumnsForTable(v);
+      }))
+    })
+    .then(() => true)
+    .catch(err => {
+      error(err);
+      throw new Error(err);
+    });
+  }
+
+  return model;
 }

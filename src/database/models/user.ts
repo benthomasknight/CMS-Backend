@@ -2,16 +2,33 @@ import { passwordValidation } from '../security/validation';
 import {Sequelize, DataTypes} from 'sequelize';
 import {hash} from '../security/encrypt';
 import sequelize = require('sequelize');
+import { BaseTableModel, BaseTable } from './BaseModel';
 
-export interface IUser {
+export interface IUser extends BaseTable {
   username: string,
   password: string,
   first_name: string,
   last_name: string
 }
 
-export interface IUserModel extends sequelize.Model<IUser, {}> {
+export interface IUserModel extends BaseTableModel<IUser, {}> {
+  /**
+   * Check if a given user exists
+   *
+   * @param {string} username
+   * @returns {Promise<boolean>} - True if the user already exists
+   * @memberof IUserModel
+   */
   UserExists(username:string): Promise<boolean>;
+
+
+  /**
+   * Creates a user from the given object
+   *
+   * @param {IUser} data
+   * @returns {Promise<IUser>}
+   * @memberof IUserModel
+   */
   CreateUser(data: IUser): Promise<IUser>;
 }
 /**
@@ -56,6 +73,9 @@ export function UsersDefinition(sequelize:Sequelize, DataTypes:DataTypes) {
     }
   }) as IUserModel;
 
+  /**
+   * Check if a user currently exists
+   */
   model.UserExists = async function(username) {
     return this.findOne({
       where: {

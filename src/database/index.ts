@@ -2,7 +2,7 @@ import sequelize, { Sequelize } from 'sequelize';
 import config from 'config';
 import {error, info} from 'winston';
 
-import { createBaseModels } from './models';
+import { createBaseModels, setupDefaultDatabaseValues } from './models';
 
 /**
  * Connection to the database
@@ -39,9 +39,6 @@ class DBConnection {
    */
   private initSequelize(): sequelize.Sequelize {
     var conf:any = config.get('dbConfig');
-    var database = `${conf.host}:${conf.port}`;
-    let username = conf.username;
-    let password = conf.password;
 
     let sq = new sequelize({
       dialect: 'mssql',
@@ -75,6 +72,7 @@ class DBConnection {
       }
     });
 
+    this.addHooks(sq);
     return sq;
   }
 
@@ -104,7 +102,7 @@ class DBConnection {
         allowNull: false,
         defaultValue: true
       };
-    })
+    });
 
 
     /*
@@ -126,6 +124,8 @@ class DBConnection {
     */
     sq.addHook('beforeValidate', (instance:any) => {
       info('in find');
+      instance.createdBy = instance.createdBy || 'system';
+      instance.updatedBy = instance.updatedBy || 'system';
 
       // Column and Table Security
     });
@@ -140,7 +140,6 @@ class DBConnection {
     */
     sq.addHook('beforeCreate', (instance:any, options:any) => {
       info('in create');
-
       // Column and Table Security
     });
     sq.addHook('afterCreate', (instance:any, options:any) => {
@@ -216,7 +215,6 @@ class DBConnection {
     createBaseModels(s);
 
     // Update the database with these models
-    let refresh = (config.get('dbConfig') as any).refreshDatabase || false;
     let match = (config.get('dbConfig') as any).refreshDatabaseMatch || '_DEV$';
     s.sync({
       // Allow the database to be completely cleared if true
@@ -226,6 +224,10 @@ class DBConnection {
       match: new RegExp(match)
     }).then(() => {
       info('Created Default Schema in Database.');
+      return setupDefaultDatabaseValues(s);
+    }).then(() => {
+      info('Setup default values in the database (Access rules and table definitions)')
+      return true;
     }).catch((err) => {
       error('Failed to create default schema in database.');
       error(err);

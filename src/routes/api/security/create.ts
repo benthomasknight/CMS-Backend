@@ -4,7 +4,7 @@ import { info } from 'winston';
 
 import {authenticate} from 'passport';
 import { db } from '../../../database';
-import {IUserModel} from '../../../database/models/users';
+import {IUserModel} from '../../../database/models/user';
 
 var router = Router();
 router.use(json());
