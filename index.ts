@@ -52,6 +52,7 @@ if (process.env.NODE_ENV != 'development') {
         } else {
           logger.error('Startup Validation Failed');
         }
+        return;
       })
       .catch(err => {
         logger.error('Startup Validation Failed');

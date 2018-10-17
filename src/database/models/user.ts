@@ -2,14 +2,9 @@ import { passwordValidation } from '../security/validation';
 import {Sequelize, DataTypes} from 'sequelize';
 import {hash} from '../security/encrypt';
 import sequelize = require('sequelize');
-import { BaseTableModel, BaseTable } from './BaseModel';
-
-export interface IUser extends BaseTable {
-  username: string,
-  password: string,
-  first_name: string,
-  last_name: string
-}
+import { BaseTableModel } from './BaseModel';
+import { IBaseTable } from '../../classes/Base';
+import { IUser } from '../../classes/User';
 
 export interface IUserModel extends BaseTableModel<IUser, {}> {
   /**

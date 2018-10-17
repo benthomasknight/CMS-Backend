@@ -1,7 +1,8 @@
 import {Sequelize, DataTypes} from 'sequelize';
-import { BaseTable, BaseTableModel } from './BaseModel';
+import { BaseTableModel } from './BaseModel';
 import { db } from '..';
 import { error } from 'winston';
+import { IBaseTable } from '../../classes/Base';
 
 /**
  * Definition of the user table
@@ -10,7 +11,7 @@ import { error } from 'winston';
  * @interface IRole
  * @extends {BaseTable}
  */
-export interface IRole extends BaseTable {
+export interface IRole extends IBaseTable {
 }
 
 /**

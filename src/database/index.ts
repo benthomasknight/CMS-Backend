@@ -1,8 +1,13 @@
 import sequelize, { Sequelize } from 'sequelize';
 import config from 'config';
-import {error, info} from 'winston';
+import { error, info } from 'winston';
 
 import { createBaseModels, setupDefaultDatabaseValues } from './models';
+import { BaseTableModel } from './models/BaseModel';
+import { IBaseTable } from '../classes/Base';
+import { IAccessModel, AccessTypes } from './models/access';
+import { singleRequestCache } from './utils/RequestCache';
+import { promises } from 'fs';
 
 /**
  * Connection to the database
@@ -38,7 +43,7 @@ class DBConnection {
    * @memberof DBConnection
    */
   private initSequelize(): sequelize.Sequelize {
-    var conf:any = config.get('dbConfig');
+    var conf: any = config.get('dbConfig');
 
     let sq = new sequelize({
       dialect: 'mssql',
@@ -68,7 +73,7 @@ class DBConnection {
         $NBETWEEN: sequelize.Op.notBetween,
 
         $AND: sequelize.Op.and,
-        $OR: sequelize.Op.or,
+        $OR: sequelize.Op.or
       }
     });
 
@@ -83,11 +88,10 @@ class DBConnection {
    * @memberof DBConnection
    */
   private addHooks(sq: Sequelize) {
-
     /*
     MODEL DEFINE
     */
-    sq.addHook('beforeDefine',(attr: sequelize.DefineAttributes, opt: sequelize.DefineOptions<any>) => {
+    sq.addHook('beforeDefine', (attr: sequelize.DefineAttributes, opt: sequelize.DefineOptions<any>) => {
       // Default Columns
       attr.createdBy = {
         type: sequelize.STRING,
@@ -104,16 +108,65 @@ class DBConnection {
       };
     });
 
-
     /*
     FIND
     */
-    sq.addHook('beforeFind', (instance:any) => {
+    sq.addHook('beforeFind', function(this: BaseTableModel<IBaseTable, {}>, instance: any) {
       info('in find');
+      var b = singleRequestCache.get('user');
+      if(!singleRequestCache.get('user') || this.name ==='access') {
+        return Promise.resolve();
+      }
 
       // Column and Table Security
+      let prom = (<IAccessModel>sq.models.access).HasAccessToTable(AccessTypes.Read, 'users');
+
+      prom.then(val => {
+        if (!val) {
+          info("No Access to ")
+          return Promise.resolve();
+        }
+
+        let p = Promise.resolve();
+        // Add all the attributes to the instance so that security can be run
+        if (!instance.attributes) {
+          //this.getSequelize().models[]
+          p = p.then(() => this.describe())
+          .then(v => {
+            instance.attributes = Object.keys(v);
+            return;
+          });
+        }
+        // Check if users can read columns, and remove any that are not available
+        return p
+          .then(() => {
+            return Promise.all(
+              Object.keys(instance.attributes).map(v => {
+                return (<IAccessModel>sq.models.access).HasAccessToColumn(AccessTypes.Read, 'users', v).then(res => {
+                  return res ? v : null;
+                });
+              })
+            );
+          })
+          .then(res => {
+            return res.reduce((prev, curr) => {
+              if (curr != null) {
+                prev.push(curr);
+              }
+              return prev;
+            }, new Array(res.length));
+          })
+          .then(res => {
+            instance.attributes = res;
+            return;
+          })
+          .catch(err => {
+            error(err);
+            throw new Error(err);
+          });
+      });
     });
-    sq.addHook('afterFind', (instance:any) => {
+    sq.addHook('afterFind', (instance: any) => {
       info('in find');
 
       // Column and Table Security
@@ -122,14 +175,14 @@ class DBConnection {
     /*
     VALIDATE
     */
-    sq.addHook('beforeValidate', (instance:any) => {
+    sq.addHook('beforeValidate', (instance: any) => {
       info('in find');
       instance.createdBy = instance.createdBy || 'system';
       instance.updatedBy = instance.updatedBy || 'system';
 
       // Column and Table Security
     });
-    sq.addHook('afterValidate', (instance:any) => {
+    sq.addHook('afterValidate', (instance: any) => {
       info('in find');
 
       // Column and Table Security
@@ -138,11 +191,11 @@ class DBConnection {
     /*
     CREATE
     */
-    sq.addHook('beforeCreate', (instance:any, options:any) => {
+    sq.addHook('beforeCreate', (instance: any, options: any) => {
       info('in create');
       // Column and Table Security
     });
-    sq.addHook('afterCreate', (instance:any, options:any) => {
+    sq.addHook('afterCreate', (instance: any, options: any) => {
       info('in create');
 
       // Column and Table Security
@@ -151,12 +204,12 @@ class DBConnection {
     /*
     UPDATE
     */
-    sq.addHook('beforeUpdate', (instance:any, options:any) => {
+    sq.addHook('beforeUpdate', (instance: any, options: any) => {
       info('in update');
 
       // Column and Table Security
     });
-    sq.addHook('afterUpdate', (instance:any, options:any) => {
+    sq.addHook('afterUpdate', (instance: any, options: any) => {
       info('in update');
 
       // Column and Table Security
@@ -165,17 +218,16 @@ class DBConnection {
     /*
     DESTROY
     */
-    sq.addHook('beforeDestroy', (instance:any, options:any) => {
+    sq.addHook('beforeDestroy', (instance: any, options: any) => {
       info('in destroy');
 
       // Column and Table Security
     });
-    sq.addHook('afterDestroy', (instance:any, options:any) => {
+    sq.addHook('afterDestroy', (instance: any, options: any) => {
       info('in destroy');
 
       // Column and Table Security
     });
-
   }
 
   /**
@@ -186,16 +238,16 @@ class DBConnection {
    */
   test() {
     return this.getSequelize()
-    .authenticate()
-    .then(() => {
-      info('Connection has been established successfully.');
-      return true;
-    })
-    .catch(err => {
-      error('Unable to connect to the database:');
-      error(err);
-      return false;
-    });
+      .authenticate()
+      .then(() => {
+        info('Connection has been established successfully.');
+        return true;
+      })
+      .catch(err => {
+        error('Unable to connect to the database:');
+        error(err);
+        return false;
+      });
   }
 
   /**
@@ -222,16 +274,19 @@ class DBConnection {
 
       // Check to make sure that the database name matches the ones allowed to be cleared
       match: new RegExp(match)
-    }).then(() => {
-      info('Created Default Schema in Database.');
-      return setupDefaultDatabaseValues(s);
-    }).then(() => {
-      info('Setup default values in the database (Access rules and table definitions)')
-      return true;
-    }).catch((err) => {
-      error('Failed to create default schema in database.');
-      error(err);
-    });
+    })
+      .then(() => {
+        info('Created Default Schema in Database.');
+        return setupDefaultDatabaseValues(s);
+      })
+      .then(() => {
+        info('Setup default values in the database (Access rules and table definitions)');
+        return true;
+      })
+      .catch(err => {
+        error('Failed to create default schema in database.');
+        error(err);
+      });
   }
 }
 

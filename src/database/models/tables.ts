@@ -1,12 +1,13 @@
 import {Sequelize, DataTypes} from 'sequelize';
-import { BaseTable, BaseTableModel } from './BaseModel';
+import { BaseTableModel } from './BaseModel';
 import sequelize = require('sequelize');
 import { FindOrCreateDefaultAccess } from '../utils/TableSyncUtils';
 import { IColumnModel } from './column';
 import { db } from '..';
 import { error } from 'winston';
+import { IBaseTable } from '../../classes/Base';
 
-export interface ITable extends BaseTable {
+export interface ITable extends IBaseTable {
   name: string;
   label: string;
 }

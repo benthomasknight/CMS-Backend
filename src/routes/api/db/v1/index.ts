@@ -43,8 +43,8 @@ router.get('/:table', function (req, res) {
     res.json(v);
   }).catch(err => {
     error(err);
-    res.sendStatus(400);
     res.send("Failed to retrieve data. Please check your query.");
+    
   });
 });
 

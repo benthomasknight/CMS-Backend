@@ -27,7 +27,7 @@ export function FindOrCreateDefaultAccess(table: string) {
           type: AccessTypes.Read,
           tableName: table,
           columnName: null,
-          script: '(() => true)()'
+          script: 'return true'
         }
       })
 }

@@ -7,9 +7,10 @@ import { TriggerDefinition } from "./trigger";
 import { AccessDefinition } from "./access";
 import { TableDefinition } from './tables';
 import { FindOrCreateTable } from "../utils/TableSyncUtils";
-import { BaseTableModel, BaseTable } from "./BaseModel";
+import { BaseTableModel } from "./BaseModel";
 import { RoleDefinition } from "./role";
 import { UserRoleDefinition } from "./user_role";
+import { IBaseTable } from "../../classes/Base";
 
 
 /**
@@ -51,7 +52,7 @@ export async function setupDefaultDatabaseValues(s: Sequelize) {
     // Set any default values
     .then(() => {
       // Create all default values for the current tables
-      let func = (<BaseTableModel<BaseTable, {}>>s.models[v]).PostCreateScript;
+      let func = (<BaseTableModel<IBaseTable, {}>>s.models[v]).PostCreateScript;
       if(func) {
         return func();
       }

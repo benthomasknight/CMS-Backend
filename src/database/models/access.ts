@@ -1,8 +1,16 @@
 import {Sequelize, DataTypes} from 'sequelize';
-import { IUser } from './user';
-import { BaseTable, BaseTableModel } from './BaseModel';
-import sequelize = require('sequelize');
+import { BaseTableModel } from './BaseModel';
+import { singleRequestCache } from '../utils/RequestCache';
+import { silly, error } from 'winston';
+import { IBaseTable } from '../../classes/Base';
+/*
+Constants
+*/
+const UNIQUEKEY = 'IACCESS-';
 
+/*
+Model Definition
+*/
 export enum AccessTypes {
   Create = 'C',
   Read = 'R',
@@ -17,7 +25,7 @@ export enum AccessTypes {
  * @interface IAccess
  * @extends {BaseTable}
  */
-export interface IAccess extends BaseTable {
+export interface IAccess extends IBaseTable {
   type: AccessTypes,
   tableName: string,
   columnName: string,
@@ -34,6 +42,7 @@ export interface IAccess extends BaseTable {
 export interface IAccessModel extends BaseTableModel<IAccess, {}> {
   HasAccessToTable(type:AccessTypes, table: string): Promise<boolean>;
   HasAccessToColumn(type:AccessTypes, table: string, column: string): Promise<boolean>;
+  getUniqueCacheKey(keys: Array<string>): string;
 }
 
 /**
@@ -68,6 +77,12 @@ export function AccessDefinition(sequelize:Sequelize, DataTypes:DataTypes) {
    * Check if the current user has access rights to a given table
    */
   model.HasAccessToTable = async function(type:AccessTypes, table: string) {
+    var cachedResult = <boolean|undefined>singleRequestCache.get(this.getUniqueCacheKey([type, table]));
+
+    if(cachedResult !== undefined) {
+      return Promise.resolve(cachedResult);
+    }
+
     return this.findAll({
       where: {
         tableName: table,
@@ -76,8 +91,16 @@ export function AccessDefinition(sequelize:Sequelize, DataTypes:DataTypes) {
     })
     .then(function(res: Array<IAccess>) {
       return res.some(function(value, _index, _arr) {
-        return eval(value.script);
+        return new Function(value.script)();
       });
+    })
+    .then((val) => {
+      singleRequestCache.set(this.getUniqueCacheKey([type, table]), val);
+      return val;
+    })
+    .catch((err) => {
+      error(err);
+      throw new Error(err);
     });
   }
 
@@ -85,18 +108,44 @@ export function AccessDefinition(sequelize:Sequelize, DataTypes:DataTypes) {
    * Check if the current user has access rights to a given column
    */
   model.HasAccessToColumn = async function(type:AccessTypes, table: string, column:string) {
-    return this.findAll({
-      where: {
-        tableName: table,
-        type:type,
-        columnName: column
+    return this.HasAccessToTable(type, table)
+    .then(val => {
+      if(!val) {
+        return false;
       }
+
+      var cachedResult = <boolean|undefined>singleRequestCache.get(this.getUniqueCacheKey([type, table, column]));
+
+      if(cachedResult !== undefined) {
+        return Promise.resolve(cachedResult);
+      }
+
+      return this.findAll({
+        where: {
+          tableName: table,
+          type:type,
+          columnName: column
+        }
+      })
+      .then(function(res: Array<IAccess>) {
+        return res.length == 0 || res.some(function(value, _index, _arr) {
+          return eval(value.script);
+        });
+      })
     })
-    .then(function(res: Array<IAccess>) {
-      return res.some(function(value, _index, _arr) {
-        return eval(value.script);
-      });
+    .then((val) => {
+      singleRequestCache.set(this.getUniqueCacheKey([type, table, column]), val);
+      return val;
+    })
+    .catch((err) => {
+      error(err);
+      throw new Error(err);
     });
+  }
+
+  model.getUniqueCacheKey = function(keys) {
+    silly('Access Unique Key: ' + UNIQUEKEY + keys.join('-'));
+    return UNIQUEKEY + keys.join('-');
   }
 
   return model;

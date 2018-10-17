@@ -8,6 +8,8 @@ import { db } from '../database';
 import { NextFunction } from 'connect';
 
 import helmet from 'helmet';
+import { singleRequestCache } from '../database/utils/RequestCache';
+import { User } from '../classes/User';
 
 /**
  * Make sure all the passport required imports are added
@@ -16,6 +18,12 @@ import helmet from 'helmet';
  * @param {Express} app
  */
 export function setupSecurity(app: Express) {
+  // Make sure all routes go through the authentication
+  app.all('*', (req, res, next) => {
+    singleRequestCache.start();
+    next();
+  })
+
   app.use(helmet());
 
   app.use(session({
@@ -32,8 +40,6 @@ export function setupSecurity(app: Express) {
 
   app.use(initialize());
   app.use(psession());
-
-  // Make sure all routes go through the authentication
   app.all('*', isAuthenticated);
 }
 
@@ -69,9 +75,12 @@ deserializeUser(function(id: string|number, done) {
   db.getSequelize().models.users
     .findById(id)
     .then(val => {
+      singleRequestCache.set("user", new User(val.dataValues));
+      var a = singleRequestCache.get("user");
       done(null, val);
     })
     .catch(err => {
+      singleRequestCache.flush();
       done(err);
     });
 });

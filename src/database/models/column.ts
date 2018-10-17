@@ -1,12 +1,13 @@
 import {Sequelize, DataTypes} from 'sequelize';
-import { BaseTableModel, BaseTable } from './BaseModel';
+import { BaseTableModel } from './BaseModel';
 import { db } from '..';
 import { MapToFieldType } from './DataTypes';
 import { IFieldTypeModel } from './field_types';
 import { error } from 'winston';
+import { IBaseTable } from '../../classes/Base';
 
 
-export interface IColumn extends BaseTable {
+export interface IColumn extends IBaseTable {
   name: string;
   label: string;
 }
@@ -47,7 +48,7 @@ export function ColumnDefinition(sequelize:Sequelize, DataTypes:DataTypes) {
     .then(c => {
       // This is used to ensure the field types table is populated before populating the columns. Note this happends on startup.
       if(c > 0) {
-        return (<BaseTableModel<BaseTable, {}>>sq.models[tableName]).describe();
+        return (<BaseTableModel<IBaseTable, {}>>sq.models[tableName]).describe();
       }
       return {};
     })

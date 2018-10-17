@@ -1,12 +1,13 @@
 import {Sequelize, DataTypes} from 'sequelize';
-import { BaseTable, BaseTableModel } from './BaseModel';
+import { BaseTableModel } from './BaseModel';
 import sequelize = require('sequelize');
 import { types, MapToFieldType } from './DataTypes';
 import { error } from 'winston';
 import { db } from '..';
 import { IColumnModel } from './column';
+import { IBaseTable } from '../../classes/Base';
 
-export interface IFieldType extends BaseTable {
+export interface IFieldType extends IBaseTable {
   id: number;
   label: string;
 }
