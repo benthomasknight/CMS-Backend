@@ -44,7 +44,6 @@ router.get('/:table', function (req, res) {
   }).catch(err => {
     error(err);
     res.send("Failed to retrieve data. Please check your query.");
-    
   });
 });
 

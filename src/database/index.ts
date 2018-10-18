@@ -114,16 +114,16 @@ class DBConnection {
     sq.addHook('beforeFind', function(this: BaseTableModel<IBaseTable, {}>, instance: any) {
       info('in find');
       var b = singleRequestCache.get('user');
-      if(!singleRequestCache.get('user') || this.name ==='access') {
+      if (!singleRequestCache.get('user') || this.name === 'access') {
         return Promise.resolve();
       }
 
       // Column and Table Security
       let prom = (<IAccessModel>sq.models.access).HasAccessToTable(AccessTypes.Read, 'users');
 
-      prom.then(val => {
+      return prom.then(val => {
         if (!val) {
-          info("No Access to ")
+          info('No Access to ');
           return Promise.resolve();
         }
 
@@ -131,8 +131,7 @@ class DBConnection {
         // Add all the attributes to the instance so that security can be run
         if (!instance.attributes) {
           //this.getSequelize().models[]
-          p = p.then(() => this.describe())
-          .then(v => {
+          p = p.then(() => this.describe()).then(v => {
             instance.attributes = Object.keys(v);
             return;
           });
@@ -141,7 +140,7 @@ class DBConnection {
         return p
           .then(() => {
             return Promise.all(
-              Object.keys(instance.attributes).map(v => {
+              (<Array<string>>Object.values(instance.attributes)).map((v) => {
                 return (<IAccessModel>sq.models.access).HasAccessToColumn(AccessTypes.Read, 'users', v).then(res => {
                   return res ? v : null;
                 });
@@ -149,9 +148,9 @@ class DBConnection {
             );
           })
           .then(res => {
-            return res.reduce((prev, curr) => {
+            return res.reduce((prev, curr, index) => {
               if (curr != null) {
-                prev.push(curr);
+                prev[index] = curr;
               }
               return prev;
             }, new Array(res.length));
