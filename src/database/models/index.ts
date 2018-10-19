@@ -46,17 +46,20 @@ export function createBaseModels(s: Sequelize) {
  * @returns
  */
 export async function setupDefaultDatabaseValues(s: Sequelize) {
-  return Promise.all(Object.keys(s.models).map((v) => {
+  // Run each post script in sequence
+  return Object.keys(s.models).reduce((prev, curr) => {
     // Create all tables
-    return FindOrCreateTable(v)
-    // Set any default values
-    .then(() => {
-      // Create all default values for the current tables
-      let func = (<BaseTableModel<IBaseTable, {}>>s.models[v]).PostCreateScript;
-      if(func) {
-        return func();
-      }
-      return false;
-    })
-  }));
+    return prev.then(() => {
+      return FindOrCreateTable(curr)
+      // Set any default values
+      .then(() => {
+        // Create all default values for the current tables
+        let func = (<BaseTableModel<IBaseTable, {}>>s.models[curr]).PostCreateScript;
+        if(func) {
+          return func();
+        }
+        return false;
+      })
+    });
+  }, Promise.resolve(true));
 }

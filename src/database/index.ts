@@ -106,6 +106,11 @@ class DBConnection {
         allowNull: false,
         defaultValue: true
       };
+      attr.editable = {
+        type: sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: true
+      };
     });
 
     /*
